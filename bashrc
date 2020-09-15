@@ -57,6 +57,9 @@ alias gpull="git pull --rebase"
 alias gstart="git checkout -b"
 
 # bashrc
+
+
+
 reload-bash() {
   if [ -f ~/.bash_profile ]; then
       source ~/.bash_profile
@@ -82,15 +85,15 @@ fi
 #  fi
 #}
 ps1-kube() {
-  PS1='\h $(kube_ps1) \W> '
+  PS1='\h $(kube_ps1) \w> '
   export _PS1_TYPE=kube
 }
 ps1-min() {
-  PS1='\h \W> '
+  PS1='\h \w> '
   export _PS1_TYPE=git
 }
 ps1-git() {
-  PS1='\h\e[34m$(__git_ps1)\e[0m \W> '
+  PS1='\h\e[34m$(__git_ps1)\e[35m \w> \e[0m'
   export _PS1_TYPE=git
 }
 
@@ -103,6 +106,7 @@ elif [ "$_PS1_TYPE" = "min" ]; then
 else
   ps1-git 
 fi
+
 
 docker-tags() {
     arr=("$@")

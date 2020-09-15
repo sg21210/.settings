@@ -1,0 +1,14 @@
+set autoindent
+set cindent
+set hlsearch
+set nu
+set tabstop=4
+set shiftwidth=4
+set expandtab
+set ruler
+set smarttab
+set ignorecase
+set smartindent
+set incsearch
+set showmatch
+syntax on
