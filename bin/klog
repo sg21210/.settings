@@ -1,14 +1,14 @@
 #!/bin/bash
 
 if [ "$#" -eq 0 ]; then
-    echo "usage: kex pod_prefix [-n namespace]"
+    echo "usage: klog pod_prefix [-n namespace]"
     exit 1
 fi
 
 first_pod=$(podid_all $@)
 args=${@:2}
 
-echo "kubectl exec -it $first_pod $args -- /bin/sh"
+echo "kubectl logs $first_pod $args"
 echo "================================================================================="
-kubectl exec -it $first_pod ${@:2} -- /bin/sh
+kubectl logs $first_pod ${@:2}
 

@@ -3,7 +3,7 @@
 # Kubernetes prompt helper for bash/zsh
 # Displays current context and namespace
 
-# Copyright 2018 Jon Mosco
+# Copyright 2019 Jon Mosco
 #
 #  Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -24,7 +24,7 @@
 # Override these values in ~/.zshrc or ~/.bashrc
 KUBE_PS1_BINARY="${KUBE_PS1_BINARY:-kubectl}"
 KUBE_PS1_SYMBOL_ENABLE="${KUBE_PS1_SYMBOL_ENABLE:-true}"
-KUBE_PS1_SYMBOL_DEFAULT="${KUBE_PS1_SYMBOL_DEFAULT:-\u2388 }"
+KUBE_PS1_SYMBOL_DEFAULT=${KUBE_PS1_SYMBOL_DEFAULT:-$'\u2388 '}
 KUBE_PS1_SYMBOL_USE_IMG="${KUBE_PS1_SYMBOL_USE_IMG:-false}"
 KUBE_PS1_NS_ENABLE="${KUBE_PS1_NS_ENABLE:-true}"
 KUBE_PS1_PREFIX="${KUBE_PS1_PREFIX-(}"
@@ -38,6 +38,8 @@ KUBE_PS1_BG_COLOR="${KUBE_PS1_BG_COLOR}"
 KUBE_PS1_KUBECONFIG_CACHE="${KUBECONFIG}"
 KUBE_PS1_DISABLE_PATH="${HOME}/.kube/kube-ps1/disabled"
 KUBE_PS1_LAST_TIME=0
+KUBE_PS1_CLUSTER_FUNCTION="${KUBE_PS1_CLUSTER_FUNCTION}"
+KUBE_PS1_NAMESPACE_FUNCTION="${KUBE_PS1_NAMESPACE_FUNCTION}"
 
 # Determine our shell
 if [ "${ZSH_VERSION-}" ]; then
@@ -58,7 +60,7 @@ _kube_ps1_init() {
       setopt PROMPT_SUBST
       autoload -U add-zsh-hook
       add-zsh-hook precmd _kube_ps1_update_cache
-      zmodload zsh/stat
+      zmodload -F zsh/stat b:zstat
       zmodload zsh/datetime
       ;;
     "bash")
@@ -147,7 +149,8 @@ _kube_ps1_symbol() {
   case "${KUBE_PS1_SHELL}" in
     bash)
       if ((BASH_VERSINFO[0] >= 4)) && [[ $'\u2388 ' != "\\u2388 " ]]; then
-        KUBE_PS1_SYMBOL=$'\u2388 '
+        KUBE_PS1_SYMBOL="${KUBE_PS1_SYMBOL_DEFAULT}"
+        # KUBE_PS1_SYMBOL=$'\u2388 '
         KUBE_PS1_SYMBOL_IMG=$'\u2638 '
       else
         KUBE_PS1_SYMBOL=$'\xE2\x8E\x88 '
@@ -160,7 +163,6 @@ _kube_ps1_symbol() {
     *)
       KUBE_PS1_SYMBOL="k8s"
   esac
-  KUBE_PS1_SYMBOL="k8s"
 
   if [[ "${KUBE_PS1_SYMBOL_USE_IMG}" == true ]]; then
     KUBE_PS1_SYMBOL="${KUBE_PS1_SYMBOL_IMG}"
@@ -181,13 +183,13 @@ _kube_ps1_file_newer_than() {
   local check_time=$2
 
   if [[ "${KUBE_PS1_SHELL}" == "zsh" ]]; then
-    mtime=$(stat +mtime "${file}")
+    mtime=$(zstat -L +mtime "${file}")
   elif stat -c "%s" /dev/null &> /dev/null; then
     # GNU stat
-    mtime=$(stat -c %Y "${file}")
+    mtime=$(stat -L -c %Y "${file}")
   else
     # BSD stat
-    mtime=$(stat -f %m "$file")
+    mtime=$(stat -L -f %m "$file")
   fi
 
   [[ "${mtime}" -gt "${check_time}" ]]
@@ -237,6 +239,11 @@ _kube_ps1_get_context_ns() {
   fi
 
   KUBE_PS1_CONTEXT="$(${KUBE_PS1_BINARY} config current-context 2>/dev/null)"
+
+  if [[ ! -z "${KUBE_PS1_CLUSTER_FUNCTION}" ]]; then
+    KUBE_PS1_CONTEXT=$($KUBE_PS1_CLUSTER_FUNCTION $KUBE_PS1_CONTEXT)
+  fi
+
   if [[ -z "${KUBE_PS1_CONTEXT}" ]]; then
     KUBE_PS1_CONTEXT="N/A"
     KUBE_PS1_NAMESPACE="N/A"
@@ -245,6 +252,11 @@ _kube_ps1_get_context_ns() {
     KUBE_PS1_NAMESPACE="$(${KUBE_PS1_BINARY} config view --minify --output 'jsonpath={..namespace}' 2>/dev/null)"
     # Set namespace to 'default' if it is not defined
     KUBE_PS1_NAMESPACE="${KUBE_PS1_NAMESPACE:-default}"
+
+    if [[ ! -z "${KUBE_PS1_NAMESPACE_FUNCTION}" ]]; then
+        KUBE_PS1_NAMESPACE=$($KUBE_PS1_NAMESPACE_FUNCTION $KUBE_PS1_NAMESPACE)
+    fi
+
   fi
 }
 
@@ -309,6 +321,7 @@ kubeoff() {
 # Build our prompt
 kube_ps1() {
   [[ "${KUBE_PS1_ENABLED}" == "off" ]] && return
+  [[ -z "${KUBE_PS1_CONTEXT}" ]] && return
 
   local KUBE_PS1
   local KUBE_PS1_RESET_COLOR="${_KUBE_PS1_OPEN_ESC}${_KUBE_PS1_DEFAULT_FG}${_KUBE_PS1_CLOSE_ESC}"

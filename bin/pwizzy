@@ -1,0 +1,32 @@
+#!/bin/bash
+
+if [ "$#" -le 1 ]; then
+    echo "usage: pwizzy [import/export] [CLUSTER_NAME]"
+    exit 1
+fi
+
+func=$1
+target=$2
+
+if [ "$func" != "import" -a "$func" != "export"  ]; then
+    echo "pwizzy: invalid command. use import/export only"
+    exit 1
+
+fi
+
+metadata=$(jq -r ".$target" "$HOME/.grafana_list")
+if [ "$metadata" = "null" ]; then
+    echo "pwizzy: no such cluster name in ~/.grafana_list"
+    exit 1
+
+fi
+
+url=$(echo $metadata | jq .url -r)
+username=$(echo $metadata | jq .username -r)
+password=$(echo $metadata | jq .password -r)
+
+wizzy set grafana url $url
+wizzy set grafana username $username
+wizzy set grafana password $password
+ 
+wizzy $func dashboards

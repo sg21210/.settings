@@ -2,6 +2,9 @@
 
 export PATH="$HOME/bin:$HOME/.settings/bin:$HOME/local/bin:$PATH"
 
+export EDITOR='vi'
+export VISUAL='vi'
+
 # kubernetes
 
 alias k="kubectl"
@@ -84,30 +87,33 @@ fi
 #    echo ""
 #  fi
 #}
-ps1-kube() {
-  PS1='\h $(kube_ps1) \w> '
-  export _PS1_TYPE=kube
-}
-ps1-min() {
-  PS1='\h \w> '
-  export _PS1_TYPE=git
-}
-ps1-git() {
-  PS1='\h\e[34m$(__git_ps1)\e[35m \w> \e[0m'
-  export _PS1_TYPE=git
-}
 
-if [ "$_PS1_TYPE" = "git" ]; then
-  ps1-git
-elif [ "$_PS1_TYPE" = "kube" ]; then
-  ps1-kube
-elif [ "$_PS1_TYPE" = "min" ]; then
-  ps1-min
-else
-  ps1-git 
-fi
+source ~/.settings/kube-ps1.sh
+PS1='[\u@\h \W $(kube_ps1)]\$ '
 
-
+# ps1-kube() {
+#   PS1='\h $(kube_ps1) \W> '
+#   export _PS1_TYPE=kube
+# }
+# ps1-min() {
+#   PS1='\h \W> '
+#   export _PS1_TYPE=git
+# }
+# ps1-git() {
+#   PS1='\h\e[34m$(__git_ps1)\e[0m \W> '
+#   export _PS1_TYPE=git
+# }
+# 
+# if [ "$_PS1_TYPE" = "git" ]; then
+#   ps1-git
+# elif [ "$_PS1_TYPE" = "kube" ]; then
+#   ps1-kube
+# elif [ "$_PS1_TYPE" = "min" ]; then
+#   ps1-min
+# else
+#   ps1-git 
+# fi
+# 
 docker-tags() {
     arr=("$@")
 

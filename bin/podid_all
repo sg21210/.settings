@@ -1,0 +1,18 @@
+#!/bin/bash
+
+if [ "$#" -eq 0 ]; then
+    echo "usage: podid_all pod_keyword [-n namespace]"
+    exit 1
+fi
+
+prefix=$1
+args=${@:2}
+
+podid=$(kubectl get pod $args | egrep -o "[a-zA-Z0-9-]*$prefix[a-zA-Z0-9-]*" | sed -n 1p)
+echo $podid
+#first_pod=$(kubectl get pod | egrep -o "$1[a-zA-Z0-9-]*" | sed -n 1p ) #| cut -f 1 -d " ")
+
+#shift
+#echo "kubectl exec -it $first_pod $@ -- /bin/sh"
+#kubectl exec -it $first_pod $@ -- /bin/sh
+

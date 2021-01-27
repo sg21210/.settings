@@ -1,4 +1,4 @@
 #!/bin/bash
 
-kubectl exec -it $(podid devtools -n default) -n default -- /bin/bash
+kubectl exec -it $(podid devtools -n sys-devtools) -n sys-devtools -- /bin/bash
 
